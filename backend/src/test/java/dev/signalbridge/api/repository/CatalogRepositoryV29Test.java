@@ -35,6 +35,28 @@ class CatalogRepositoryV29Test {
             assertFalse(sql.contains("source_idLEFT JOIN"), sql);
         }
     }
+    @Test void combinedReleaseListUsesNumericVersionOrderBeforePublicationDate() {
+        var db = fake();
+        new CatalogRepository(db, "OR").findMyRecords(0, 10, "", null, 27L);
+        var q = ArgumentCaptor.forClass(String.class);
+        verify(db).query(q.capture(), any(SqlParameterSource.class), any(RowMapper.class));
+        String order = q.getValue().substring(q.getValue().lastIndexOf(" ORDER BY ") + 10);
+        assertTrue(order.contains("split_part("), order);
+        assertTrue(order.contains("published_at"), order);
+        assertTrue(order.indexOf("split_part(") < order.indexOf("published_at"), order);
+    }
+
+    @Test void combinedChangeListUsesNumericVersionOrderBeforePublicationDate() {
+        var db = fake();
+        new CatalogRepository(db, "OR").findMyChanges(0, 10, null, 27L);
+        var q = ArgumentCaptor.forClass(String.class);
+        verify(db).query(q.capture(), any(SqlParameterSource.class), any(RowMapper.class));
+        String order = q.getValue().substring(q.getValue().lastIndexOf(" ORDER BY ") + 10);
+        assertTrue(order.contains("split_part("), order);
+        assertTrue(order.contains("published_at"), order);
+        assertTrue(order.indexOf("split_part(") < order.indexOf("published_at"), order);
+    }
+
     @Test void memberRepoFilterEnforcedInQueryAndCount(){
         var db=fake();new CatalogRepository(db,"OR").findMyRecords(0,10,"",null,27L);
         var q=ArgumentCaptor.forClass(String.class);
