@@ -392,3 +392,18 @@ export async function requestGitHubRefresh(sourceId:number):Promise<GitHubRefres
   if(!res.ok)throw new Error(`최신화 요청 실패 (HTTP ${res.status})`);
   return await res.json() as GitHubRefreshStatus;
 }
+
+
+// V2-11: DB-backed dashboard and operations limited to current member subscriptions.
+export type EngineeringDashboardSummary = {
+  sourceCount:number;recordCount:number;latestCheckedAt:string|null;
+  changesLast7Days:number;
+  days:{day:string;newCount:number;updatedCount:number}[];
+  recentChanges:ChangeItem[];
+};
+export function fetchMyEngineeringDashboard(signal?:AbortSignal){
+  return readJson<EngineeringDashboardSummary>('/api/v1/my-repositories/dashboard',signal);
+}
+export function fetchMyIngestions(signal?:AbortSignal){
+  return readJson<IngestionSnapshot>('/api/v1/my-repositories/ingestions',signal);
+}
