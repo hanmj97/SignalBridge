@@ -11,6 +11,11 @@ const pending = (s:GitHubRefreshStatus | undefined) =>
 
 function statusLabel(s:GitHubRefreshStatus | undefined) {
   if (!s) return '';
+  const elapsed=Date.now()-Date.parse(s.requestedAt);
+  if(s.status==='PENDING' && Number.isFinite(elapsed) && elapsed>3*60_000)
+    return '3분 이상 수집 대기 중 · Airflow의 signalbridge_github_manual_refresh DAG 실행 상태를 확인해 주세요.';
+  if(s.status==='RUNNING' && Number.isFinite(elapsed) && elapsed>10*60_000)
+    return '수집 지연 중 · Airflow 태스크 로그를 확인해 주세요.';
   return ({
     PENDING:'최신화 대기 중 (Airflow가 1분 간격 확인)',
     RUNNING:'GitHub 릴리스 수집 중...',
