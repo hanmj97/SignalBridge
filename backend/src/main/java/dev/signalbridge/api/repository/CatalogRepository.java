@@ -70,13 +70,13 @@ public class CatalogRepository {
                     ORDER BY v.version DESC LIMIT 1
                 ) last_change ON TRUE
                 """;
-        // Sort by original GitHub publication time, not bulk import time. For equal publication
-        // timestamps, compare SemVer numeric components (13.2.4 > 13.1.4 > 12.4.9).
-        // Across repositories sort by publication time. With a source selected, sort by
-        // numeric release version (Grafana 13.2.4 before 13.1.4) then publication date.
-        final String releaseOrder = sourceId == null
-                ? publicationOrder("r.payload", "last_change.detected_at") + ", " + semverOrder("r.payload")
-                : semverOrder("r.payload") + ", " + publicationOrder("r.payload", "last_change.detected_at");
+        // Default to numeric release-version order even across multiple subscribed sources.
+        // The old sourceId==null branch sorted by publication time, which placed Grafana
+        // 12.4.13 before 13.2.4. Date and ID are deterministic tie breakers.
+        // Cross-repository version numbers are only a convenient ordering aid, not
+        // a measure of relative recency between different software projects.
+        final String releaseOrder = semverOrder("r.payload")
+                + ", " + publicationOrder("r.payload", "last_change.detected_at");
         final String orderLimit = " ORDER BY " + releaseOrder + ", r.id DESC LIMIT :size OFFSET :offset";
         final String columns = """
                 SELECT r.id, r.source_id, s.label AS source_label, r.title, r.url,
@@ -168,9 +168,7 @@ public class CatalogRepository {
                 SELECT v.id, v.record_id, r.title AS record_title, s.label AS source_label,
                        v.version, v.change_type, v.changed_fields, v.detected_at
                 """ + from + where + " ORDER BY "
-                + (sourceId == null
-                    ? publicationOrder("v.payload", "v.detected_at") + ", " + semverOrder("v.payload")
-                    : semverOrder("v.payload") + ", " + publicationOrder("v.payload", "v.detected_at"))
+                + semverOrder("v.payload") + ", " + publicationOrder("v.payload", "v.detected_at")
                 + ", v.id DESC LIMIT :size OFFSET :offset";
         List<ChangeItem> items = jdbc.query(sql, params, (rs, rowNum) -> new ChangeItem(
                 rs.getLong("id"), rs.getLong("record_id"), rs.getString("record_title"),
