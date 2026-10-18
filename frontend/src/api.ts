@@ -371,3 +371,24 @@ async function myRepoWrite(path:string,method:'POST'|'DELETE',body?:unknown){
 }
 export function addMyRepository(url:string){return myRepoWrite('/api/v1/my-repositories','POST',{url});}
 export function removeMyRepository(sourceId:number){return myRepoWrite(`/api/v1/my-repositories/${sourceId}`,'DELETE');}
+
+
+// V2-10: authenticated refresh requests are queued for Airflow; no GitHub token in the browser.
+export type GitHubRefreshStatus = {
+  id:number; sourceId:number; status:'PENDING'|'RUNNING'|'SUCCESS'|'FAILED';
+  requestedAt:string;startedAt:string|null;finishedAt:string|null;
+};
+export function fetchGitHubRefreshStatus(sourceId:number,signal?:AbortSignal){
+  return readJson<GitHubRefreshStatus|null>(`/api/v1/my-repositories/${sourceId}/refresh`,signal);
+}
+export async function requestGitHubRefresh(sourceId:number):Promise<GitHubRefreshStatus>{
+  const res=await fetch(`/api/v1/my-repositories/${sourceId}/refresh`,{
+    method:'POST',credentials:'same-origin',
+    headers:{'X-CSRF-TOKEN':await getCsrfToken(),Accept:'application/json'}
+  });
+  if(res.status===401)throw new Error('저장소 최신화는 로그인 후 이용할 수 있어요.');
+  if(res.status===403){clearCsrf();throw new Error('보안 토큰이 만료됐습니다. 새로고침해 주세요.');}
+  if(res.status===404)throw new Error('내가 등록한 GitHub 저장소만 최신화할 수 있어요.');
+  if(!res.ok)throw new Error(`최신화 요청 실패 (HTTP ${res.status})`);
+  return await res.json() as GitHubRefreshStatus;
+}
