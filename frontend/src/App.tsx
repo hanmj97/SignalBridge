@@ -153,6 +153,7 @@ export default function App(){
   const [mySources,setMySources]=useState<Source[]>([]);
   const [engineeringDashboard,setEngineeringDashboard]=useState<EngineeringDashboardSummary|null>(null);
   const [engineeringDashboardError,setEngineeringDashboardError]=useState('');
+  const [dashboardReleases,setDashboardReleases]=useState<RecordItem[]>([]);
   // When an authenticated member follows exactly one GitHub repo, use its
   // sourceId for queries even with "내 전체 저장소" selected. A source-specific
   // query is ordered by numeric release version (13.2.4 > 13.1.8 > 12.4.13).
@@ -193,6 +194,17 @@ export default function App(){
       .catch((e:unknown)=>{if(!c.signal.aborted)setEngineeringDashboardError(e instanceof Error?e.message:'대시보드 조회 실패');});
     return()=>c.abort();
   },[member?.id,refreshVersion]);
+
+  useEffect(()=>{
+    if(!member||mySources.length===0){setDashboardReleases([]);return;}
+    const c=new AbortController();
+    Promise.all(mySources.map(src=>fetchMyRecords(0,'',src.id,c.signal)
+      .then(page=>page.items[0]??null).catch(()=>null)))
+      .then(rows=>{
+        if(!c.signal.aborted)setDashboardReleases(rows.filter((v):v is RecordItem=>v!==null));
+      });
+    return()=>c.abort();
+  },[member?.id,mySources,refreshVersion]);
 
   useEffect(()=>{
     const c=new AbortController();setSourcesError('');
@@ -370,7 +382,7 @@ export default function App(){
             <section className="panel sources-panel"><div className="panel-title"><div><h2>내 데이터 소스 현황</h2><p>직접 등록한 GitHub 저장소의 마지막 확인 기록</p></div><button className="more-link" onClick={()=>navigate('sources')}>전체 소스 보기 <Icon name="arrow" size={15}/></button></div><div className="source-rows">{engineeringDashboardError?<p className="notice-error">{engineeringDashboardError}</p>:dashboardSources.length?dashboardSources.map(s=><div className="source-row" key={s.id}><SourceLogo name={s.label}/><div className="source-label"><strong>{s.label}</strong><span>{s.provider} · {s.resource}</span></div><span className="source-check">{s.lastCheckedAt?<><i/>확인됨</>:'미확인'}</span><small>{s.recordCount}건 저장</small></div>):<p className="empty">소스를 불러오는 중...</p>}</div></section>
             <section className="panel health-panel"><div className="panel-title"><div><h2>시스템 상태</h2><p>DB 수집 기록 기반 운영 현황</p></div><button className="more-link" onClick={()=>navigate('health')}>상세 보기 <Icon name="arrow" size={15}/></button></div><div className="health-cards"><div className="health-card"><span className="health-icon mint"><Icon name="check" size={22}/></span><div><strong>API 조회</strong><span className={recordsError||sourcesError?'health-warning':'health-good'}>{recordsError||sourcesError?'확인 필요':'응답 확인'}</span><small>웹에서 실제 API 조회 결과 기준</small></div></div><div className="health-card"><span className="health-icon coral"><Icon name="bell" size={22}/></span><div><strong>실패 알림</strong><span className="health-pending">Airflow 선택 설정</span><small>전송 성공 여부는 표시하지 않음</small></div></div><div className="health-card"><span className="health-icon blue"><Icon name="database" size={22}/></span><div><strong>내 저장소 릴리스</strong><span className="health-good">{totalRecords.toLocaleString()}건 확인</span><small>API 제공 데이터 집계</small></div></div><div className="health-card"><span className="health-icon violet"><Icon name="clock" size={22}/></span><div><strong>최근 소스 확인</strong><span className="health-pending">{latestChecked?relativeDate(new Date(latestChecked).toISOString()):'기록 없음'}</span><small>각 소스의 기록 중 최근값</small></div></div></div>{member?<OperationsPanel compact refreshVersion={refreshVersion} memberScoped/>:<p className="empty">로그인 후 본인의 수집 기록을 확인할 수 있어요.</p>}</section>
           </div>
-          <section className="panel dashboard-preview"><div className="panel-title"><div><h2>릴리스 목록 미리보기</h2><p>내 저장소의 높은 버전 릴리스</p></div><button className="more-link" onClick={()=>navigate('records')}>모두 보기 <Icon name="arrow" size={15}/></button></div><div className="rows">{recordsError?<p className="notice-error">{recordsError}</p>:records?.items.slice(0,4).map(recordRow)}</div></section>
+          <section className="panel dashboard-preview"><div className="panel-title"><div><h2>내 저장소별 대표 릴리스</h2><p>등록한 저장소마다 가장 높은 버전 한 건</p></div><button className="more-link" onClick={()=>navigate('records')}>모두 보기 <Icon name="arrow" size={15}/></button></div><div className="rows">{dashboardReleases.length?dashboardReleases.map(recordRow):<p className="empty">등록한 저장소의 수집된 릴리스가 없습니다.</p>}</div></section>
         </>}
         {view!=='dashboard'&&view!=='opportunities'&&<section className="inner-page"><div className="inner-page-title"><span className="eyebrow">SIGNALBRIDGE / {view.toUpperCase()}</span><h1>{({records:'릴리스 목록',changes:'변경 이력',repositories:'내 GitHub 저장소',sources:'데이터 소스',health:'시스템 상태',watches:'관심 알림',account:'마이페이지'} as Record<Exclude<View,'dashboard'|'opportunities'>,string>)[view]}</h1><p>{view==='repositories'?'관심 GitHub 저장소를 직접 등록하고 릴리스를 추적하세요.':view==='records'?'GitHub 릴리스를 숫자 버전이 높은 순서로 확인하세요.':view==='changes'?'데이터 변경 이력을 릴리스 버전이 높은 순서로 확인하세요.':view==='sources'?'연동된 출처와 최신 확인 시각을 조회하세요.':view==='watches'?'관심 키워드를 등록하고 새 릴리스와 변경 알림을 관리하세요.':view==='account'?'내 계정 정보를 변경하거나 회원 탈퇴를 관리하세요.':'시스템 관측 정보는 확인 가능한 데이터만 표시합니다.'}</p></div>
         {view==='repositories'&&(authReady ? member ? <MyRepositoriesPanel key={member.id} onChanged={()=>setRefreshVersion(n=>n+1)} onBrowse={sid=>{setSourceId(sid);setPage(0);navigate('records');}}/> : <AuthPanel onLogin={handleLogin}/> : <div className="panel auth-panel">계정 상태 확인 중...</div>)}
