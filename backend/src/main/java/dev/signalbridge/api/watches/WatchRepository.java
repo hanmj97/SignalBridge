@@ -20,7 +20,7 @@ public class WatchRepository {
       SELECT EXISTS(SELECT 1 FROM sources s
          WHERE s.id=:id AND s.enabled=TRUE AND s.provider='github_releases'
          AND EXISTS (SELECT 1 FROM user_repository_subscriptions u
-                     WHERE u.user_id=:uid AND u.source_id=s.id)))
+                     WHERE u.user_id=:uid AND u.source_id=s.id))
       """,
       Map.of("id",id,"uid",userId),Boolean.class));
   }
