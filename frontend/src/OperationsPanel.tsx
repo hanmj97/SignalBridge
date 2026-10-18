@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchIngestions } from './api';
+import { fetchIngestions, fetchMyIngestions } from './api';
 import type { IngestionSnapshot, IngestionSource } from './api';
 
 const formatter = new Intl.DateTimeFormat('ko-KR', {
@@ -47,9 +47,10 @@ function freshness(source: IngestionSource, generatedAt: string): { text: string
   return { text: '최근 확인됨', style: 'ops-badge--good' };
 }
 
-export default function OperationsPanel({ compact = false, refreshVersion }: {
+export default function OperationsPanel({ compact = false, refreshVersion, memberScoped = false }: {
   compact?: boolean;
   refreshVersion: number;
+  memberScoped?: boolean;
 }) {
   const [data, setData] = useState<IngestionSnapshot | null>(null);
   const [error, setError] = useState('');
@@ -61,7 +62,7 @@ export default function OperationsPanel({ compact = false, refreshVersion }: {
       pending?.abort();
       const current = new AbortController();
       pending = current;
-      fetchIngestions(current.signal)
+      (memberScoped ? fetchMyIngestions(current.signal) : fetchIngestions(current.signal))
         .then(value => { if (!current.signal.aborted) { setData(value); setError(''); } })
         .catch((cause: unknown) => {
           if (!current.signal.aborted) setError(cause instanceof Error ? cause.message : '수집 상태를 가져오지 못했습니다.');
@@ -72,7 +73,7 @@ export default function OperationsPanel({ compact = false, refreshVersion }: {
     // Poll only while this page is visible. This does NOT trigger the collector.
     const interval = window.setInterval(() => { if (!document.hidden) load(); }, 60_000);
     return () => { pending?.abort(); window.clearInterval(interval); };
-  }, [refreshVersion]);
+  }, [refreshVersion, memberScoped]);
 
   if (compact) {
     return <div className="ops-compact" aria-live="polite">
