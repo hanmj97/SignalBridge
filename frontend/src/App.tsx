@@ -151,6 +151,11 @@ export default function App(){
   const [refreshVersion,setRefreshVersion]=useState(0);
   const [sources,setSources]=useState<Source[]>([]);
   const [mySources,setMySources]=useState<Source[]>([]);
+  // When an authenticated member follows exactly one GitHub repo, use its
+  // sourceId for queries even with "내 전체 저장소" selected. A source-specific
+  // query is ordered by numeric release version (13.2.4 > 13.1.8 > 12.4.13).
+  // With multiple repositories, the combined view remains ordered by publish date.
+  const effectiveSourceId = sourceId ?? (member && mySources.length === 1 ? mySources[0].id : null);
   const [records,setRecords]=useState<ApiPage<RecordItem>|null>(null);
   const [changes,setChanges]=useState<ApiPage<ChangeItem>|null>(null);
   const [historyPage,setHistoryPage]=useState(0);
@@ -172,7 +177,7 @@ export default function App(){
   const [favorites,setFavorites]=useState<number[]>([]);
 
   useEffect(()=>{const timer=window.setTimeout(()=>setSearch(query.trim()),300);return()=>window.clearTimeout(timer);},[query]);
-  useEffect(()=>{setPage(0);},[search,sourceId]);
+  useEffect(()=>{setPage(0);},[search,effectiveSourceId]);
   useEffect(()=>{setSourceId(null);setPage(0);setHistoryPage(0);},[member?.id]);
   useEffect(()=>{
     if(!member){setMySources([]);return;}
@@ -188,23 +193,23 @@ export default function App(){
 
   useEffect(()=>{
     const c=new AbortController();setRecordsError('');setRecordsLoading(true);
-    (member ? fetchMyRecords(page,search,sourceId,c.signal) : fetchRecords(page,search,sourceId,c.signal)).then(setRecords).catch((e:unknown)=>{if(!c.signal.aborted)setRecordsError(e instanceof Error?e.message:'정보 조회 실패');}).finally(()=>{if(!c.signal.aborted)setRecordsLoading(false);});
+    (member ? fetchMyRecords(page,search,effectiveSourceId,c.signal) : fetchRecords(page,search,sourceId,c.signal)).then(setRecords).catch((e:unknown)=>{if(!c.signal.aborted)setRecordsError(e instanceof Error?e.message:'정보 조회 실패');}).finally(()=>{if(!c.signal.aborted)setRecordsLoading(false);});
     return()=>c.abort();
-  },[page,search,sourceId,refreshVersion,member?.id]);
+  },[page,search,sourceId,effectiveSourceId,refreshVersion,member?.id]);
 
   useEffect(()=>{
     const c=new AbortController();setChangesError('');setChangesLoading(true);
     // 100개까지 받아 메인 차트와 최근 변경 목록에 사용합니다. 100개 초과 시 표본임을 표시합니다.
-    (member ? fetchMyChanges(0,100,sourceId,c.signal) : fetchChanges(0,100,sourceId,c.signal)).then(setChanges).catch((e:unknown)=>{if(!c.signal.aborted)setChangesError(e instanceof Error?e.message:'변경 이력 조회 실패');}).finally(()=>{if(!c.signal.aborted)setChangesLoading(false);});
+    (member ? fetchMyChanges(0,100,effectiveSourceId,c.signal) : fetchChanges(0,100,sourceId,c.signal)).then(setChanges).catch((e:unknown)=>{if(!c.signal.aborted)setChangesError(e instanceof Error?e.message:'변경 이력 조회 실패');}).finally(()=>{if(!c.signal.aborted)setChangesLoading(false);});
     return()=>c.abort();
-  },[sourceId,refreshVersion,member?.id]);
+  },[sourceId,effectiveSourceId,refreshVersion,member?.id]);
 
   useEffect(()=>{
     if(view!=='changes')return;
     const c=new AbortController();setPagedChangesError('');setPagedChangesLoading(true);
-    (member ? fetchMyChanges(historyPage,10,sourceId,c.signal) : fetchChanges(historyPage,10,sourceId,c.signal)).then(setPagedChanges).catch((e:unknown)=>{if(!c.signal.aborted)setPagedChangesError(e instanceof Error?e.message:'변경 이력 조회 실패');}).finally(()=>{if(!c.signal.aborted)setPagedChangesLoading(false);});
+    (member ? fetchMyChanges(historyPage,10,effectiveSourceId,c.signal) : fetchChanges(historyPage,10,sourceId,c.signal)).then(setPagedChanges).catch((e:unknown)=>{if(!c.signal.aborted)setPagedChangesError(e instanceof Error?e.message:'변경 이력 조회 실패');}).finally(()=>{if(!c.signal.aborted)setPagedChangesLoading(false);});
     return()=>c.abort();
-  },[view,historyPage,sourceId,refreshVersion,member?.id]);
+  },[view,historyPage,sourceId,effectiveSourceId,refreshVersion,member?.id]);
 
   useEffect(()=>{
     if(detailId===null){setDetail(null);return;}
@@ -365,7 +370,7 @@ export default function App(){
         </>}
         {view!=='dashboard'&&view!=='opportunities'&&<section className="inner-page"><div className="inner-page-title"><span className="eyebrow">SIGNALBRIDGE / {view.toUpperCase()}</span><h1>{({records:'릴리스 목록',changes:'변경 이력',repositories:'내 GitHub 저장소',sources:'데이터 소스',health:'시스템 상태',watches:'관심 알림',account:'마이페이지'} as Record<Exclude<View,'dashboard'|'opportunities'>,string>)[view]}</h1><p>{view==='repositories'?'관심 GitHub 저장소를 직접 등록하고 릴리스를 추적하세요.':view==='records'?'GitHub에 게시된 릴리스를 최신 발행일순으로 확인하세요.':view==='changes'?'데이터 변경 감지 기록을 살펴보세요.':view==='sources'?'연동된 출처와 최신 확인 시각을 조회하세요.':view==='watches'?'관심 키워드를 등록하고 새 릴리스와 변경 알림을 관리하세요.':view==='account'?'내 계정 정보를 변경하거나 회원 탈퇴를 관리하세요.':'시스템 관측 정보는 확인 가능한 데이터만 표시합니다.'}</p></div>
         {view==='repositories'&&(authReady ? member ? <MyRepositoriesPanel key={member.id} onChanged={()=>setRefreshVersion(n=>n+1)} onBrowse={sid=>{setSourceId(sid);setPage(0);navigate('records');}}/> : <AuthPanel onLogin={handleLogin}/> : <div className="panel auth-panel">계정 상태 확인 중...</div>)}
-        {(view==='records'||view==='changes')&&<section className="panel inner-list-panel"><div className="toolbar"><div><h2>{view==='records'?(sourceId?'전체 릴리스 · 버전 높은순':'전체 릴리스 · 최신 발행순'):(sourceId?'변경 이력 · 버전 높은순':'변경 이력 · 최신 발행순')}</h2><p>{view==='records'?`${records?.totalElements??0}건 검색 결과`:`${pagedChanges?.totalElements??0}건 기록`}</p></div><label className="source-select"><Icon name="filter" size={15}/><select value={sourceId??''} onChange={e=>{setSourceId(e.target.value?Number(e.target.value):null);setPage(0);setHistoryPage(0);}}><option value="">{member?'내 전체 저장소':'전체 데이터 소스'}</option>{(member?mySources:sources).map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></label></div>{member&&mySources.length===0&&<p className="watch-caveat">등록된 저장소가 없습니다. Engineering → 내 GitHub 저장소에서 공개 저장소를 추가해 주세요.</p>}<div className="rows">{view==='records'?(recordsLoading&&!records?<p className="empty">불러오는 중...</p>:recordsError?<p className="notice-error">{recordsError}</p>:records?.items.map(recordRow)):(pagedChangesLoading&&!pagedChanges?<p className="empty">불러오는 중...</p>:pagedChangesError?<p className="notice-error">{pagedChangesError}</p>:pagedChanges?.items.map(changeRow))}</div>{view==='records'&&records&&<div className="pagination"><button disabled={page===0} onClick={()=>{setPage(p=>Math.max(0,p-1));window.scrollTo(0,0);}}>이전</button><span>{page+1} / {Math.max(1,records.totalPages)} 페이지</span><button disabled={page+1>=records.totalPages} onClick={()=>{setPage(p=>p+1);window.scrollTo(0,0);}}>다음</button></div>}{view==='changes'&&pagedChanges&&<div className="pagination"><button disabled={historyPage===0} onClick={()=>{setHistoryPage(p=>Math.max(0,p-1));window.scrollTo(0,0);}}>이전</button><span>{historyPage+1} / {Math.max(1,pagedChanges.totalPages)} 페이지</span><button disabled={historyPage+1>=pagedChanges.totalPages} onClick={()=>{setHistoryPage(p=>p+1);window.scrollTo(0,0);}}>다음</button></div>}</section>}
+        {(view==='records'||view==='changes')&&<section className="panel inner-list-panel"><div className="toolbar"><div><h2>{view==='records'?(effectiveSourceId?'전체 릴리스 · 버전 높은순':'전체 릴리스 · 최신 발행순'):(effectiveSourceId?'변경 이력 · 버전 높은순':'변경 이력 · 최신 발행순')}</h2><p>{view==='records'?`${records?.totalElements??0}건 검색 결과`:`${pagedChanges?.totalElements??0}건 기록`}</p></div><label className="source-select"><Icon name="filter" size={15}/><select value={sourceId??''} onChange={e=>{setSourceId(e.target.value?Number(e.target.value):null);setPage(0);setHistoryPage(0);}}><option value="">{member?'내 전체 저장소':'전체 데이터 소스'}</option>{(member?mySources:sources).map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></label></div>{member&&mySources.length===0&&<p className="watch-caveat">등록된 저장소가 없습니다. Engineering → 내 GitHub 저장소에서 공개 저장소를 추가해 주세요.</p>}<div className="rows">{view==='records'?(recordsLoading&&!records?<p className="empty">불러오는 중...</p>:recordsError?<p className="notice-error">{recordsError}</p>:records?.items.map(recordRow)):(pagedChangesLoading&&!pagedChanges?<p className="empty">불러오는 중...</p>:pagedChangesError?<p className="notice-error">{pagedChangesError}</p>:pagedChanges?.items.map(changeRow))}</div>{view==='records'&&records&&<div className="pagination"><button disabled={page===0} onClick={()=>{setPage(p=>Math.max(0,p-1));window.scrollTo(0,0);}}>이전</button><span>{page+1} / {Math.max(1,records.totalPages)} 페이지</span><button disabled={page+1>=records.totalPages} onClick={()=>{setPage(p=>p+1);window.scrollTo(0,0);}}>다음</button></div>}{view==='changes'&&pagedChanges&&<div className="pagination"><button disabled={historyPage===0} onClick={()=>{setHistoryPage(p=>Math.max(0,p-1));window.scrollTo(0,0);}}>이전</button><span>{historyPage+1} / {Math.max(1,pagedChanges.totalPages)} 페이지</span><button disabled={historyPage+1>=pagedChanges.totalPages} onClick={()=>{setHistoryPage(p=>p+1);window.scrollTo(0,0);}}>다음</button></div>}</section>}
         {view==='sources'&&<section className="panel"><div className="source-rows detailed">{sourcesError?<p className="notice-error">{sourcesError}</p>:sources.map(s=><div className="source-row" key={s.id}><SourceLogo name={s.label}/><div className="source-label"><strong>{s.label}</strong><span>{s.provider} · {s.resource}</span></div><span className="source-check">{s.lastCheckedAt?'마지막 확인':'기록 없음'}</span><small>{formatDate(s.lastCheckedAt)}</small></div>)}</div></section>}
         {view==='watches'&&(authReady ? member&&!recoveryEntry ? <WatchlistPanel key={member.id} sources={[...sources,...mySources.filter(s=>!sources.some(p=>p.id===s.id))]} refreshVersion={refreshVersion}/> : <AuthPanel onLogin={handleLogin}/> : <div className="panel auth-panel">계정 상태 확인 중...</div>)}
         {view==='account'&&(authReady ? member ? <AccountPanel key={member.id} onMemberUpdate={setMember} onPasswordChanged={()=>{setMember(null);setView('watches');setAuthError('비밀번호가 변경되었습니다. 새 비밀번호로 다시 로그인해 주세요.');}} onAccountDeleted={()=>{setMember(null);setView('opportunities');setAuthError('계정 탈퇴가 완료됐습니다.');}}/> : <AuthPanel onLogin={handleLogin}/> : <div className="panel auth-panel">계정 상태 확인 중...</div>)}
