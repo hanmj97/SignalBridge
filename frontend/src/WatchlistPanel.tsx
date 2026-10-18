@@ -65,6 +65,21 @@ export default function WatchlistPanel({sources, refreshVersion}: {sources: Sour
     } catch (cause: unknown) { setError(cause instanceof Error ? cause.message : '등록 실패'); }
     finally { setBusy(false); }
   }
+  // Explicit opt-in for all future releases from one of my own repositories.
+  // Stored as an ordinary watch rule; existing per-user Discord controls apply.
+  async function addAllReleasesRule() {
+    if (busy || !sourceId) return;
+    setBusy(true); setError(''); setSuccess('');
+    try {
+      await createWatch('모든 릴리스', Number(sourceId));
+      setKeyword(''); setSourceId('');
+      setSuccess('선택한 저장소의 이후 신규 릴리스·내용 변경 알림을 등록했습니다.');
+      await refresh();
+    } catch (cause: unknown) {
+      setError(cause instanceof Error ? cause.message : '릴리스 전체 알림 등록 실패');
+    } finally { setBusy(false); }
+  }
+
   async function toggleRule(rule: WatchRule) {
     if (busy) return;
     setBusy(true);setError('');setSuccess('');
@@ -124,12 +139,14 @@ export default function WatchlistPanel({sources, refreshVersion}: {sources: Sour
       {discordFeedback && <p className="watch-success" role="status">{discordFeedback}</p>}
     </section>
     <section className="panel watch-panel">
-      <div className="panel-title"><div><h2>관심 키워드 등록</h2><p>소프트웨어 릴리스 제목 또는 데이터 소스 이름의 포함 문자열 검색</p></div></div>
+      <div className="panel-title"><div><h2>관심 키워드 등록</h2><p>연결한 저장소에 대해 키워드 또는 모든 신규·변경 릴리스 알림을 등록하세요.</p></div></div>
       <p className="watch-caveat">로그인한 계정에서만 자신의 관심 규칙을 볼 수 있습니다. 기존 릴리스에는 소급 알림을 보내지 않습니다. 상단에서 Discord 채널을 연결하면 이후 수집되는 신규·변경 이벤트가 30분 수집 주기마다 전달됩니다. 연결 전 이벤트는 전송하지 않습니다.</p>
       <form className="watch-create" onSubmit={addRule}>
         <label className="watch-field"><span>관심 키워드</span><input type="text" value={keyword} minLength={2} maxLength={80} onChange={e=>setKeyword(e.target.value)} placeholder="예: Grafana, rollback" required/></label>
         <label className="watch-field"><span>데이터 소스</span><select value={sourceId} onChange={e=>setSourceId(e.target.value)}><option value="">전체 데이터 소스</option>{sources.map(s=><option value={s.id} key={s.id}>{s.label}</option>)}</select></label>
         <button type="submit" className="watch-submit" disabled={busy || keyword.trim().length < 2 || rules.length >= 30}>+ 규칙 추가</button>
+        <button type="button" className="watch-submit" disabled={busy || !sourceId || rules.length >= 30}
+          onClick={()=>void addAllReleasesRule()}>선택 저장소 모든 릴리스 알림</button>
       </form>
       {error&&<p className="notice-error" role="alert">{error}</p>}
       {success&&<p role="status" className="watch-success">{success}</p>}
