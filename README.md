@@ -141,3 +141,33 @@ py -3 .\tools\phase15_preflight.py
 ## 보안·라이선스
 
 `.env`, 개인 API 키, 회원 데이터가 들어 있는 DB 덤프, Discord Webhook/암호화 키는 Git에 커밋하지 않습니다. 공개 데이터의 원문 출처·허용 조건을 확인하고, 임의 크롤링 또는 무단 재배포를 하지 않습니다. 별도 LICENSE 파일이 없으면 오픈소스 라이선스를 부여한 것으로 간주하지 않습니다.
+
+---
+
+## 실제 동작 화면
+
+SignalBridge 로컬 MVP의 실제 실행 화면입니다.
+
+### 1. 청년정책·채용공고 통합 검색
+
+![용인시 채용정보](docs/screenshots/01-yongin-jobs.webp)
+
+용인시 공식 API의 실제 채용정보를 수집하여 검색 및 상세 조회 기능을 제공합니다.
+
+### 2. Engineering 대시보드
+
+![Engineering 대시보드](docs/screenshots/02-engineering-dashboard.webp)
+
+GitHub Releases 데이터 수집, 변경 이력 및 시스템 상태를 시각화합니다.
+
+### 3. Apache Airflow 수집 자동화
+
+![Airflow DAG](docs/screenshots/03-airflow-dags.webp)
+
+Airflow DAG를 이용해 데이터 수집 작업을 스케줄링하고 실행 상태를 확인합니다.
+
+### 4. 회원별 Discord 관심 알림
+
+![Discord 관심 알림](docs/screenshots/04-member-discord-alerts.webp)
+
+회원별 GitHub 릴리스 관심 규칙, Discord 채널 연결 및 알림 이력을 관리합니다.
