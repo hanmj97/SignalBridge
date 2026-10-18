@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { fetchChanges, fetchRecord, fetchRecordHistory, fetchRecords, fetchSources, fetchMyRecords, fetchMyChanges, fetchMySources } from './api';
-import type { ApiPage, ChangeItem, RecordDetail, RecordItem, Source } from './api';
+import { fetchChanges, fetchRecord, fetchRecordHistory, fetchRecords, fetchSources, fetchMyRecords, fetchMyChanges, fetchMySources, fetchMyEngineeringDashboard } from './api';
+import type { ApiPage, ChangeItem, RecordDetail, RecordItem, Source, EngineeringDashboardSummary } from './api';
 import OperationsPanel from './OperationsPanel';
 import MyRepositoriesPanel from './MyRepositoriesPanel';
 import OpportunitiesPanel from './OpportunitiesPanel';
@@ -151,6 +151,8 @@ export default function App(){
   const [refreshVersion,setRefreshVersion]=useState(0);
   const [sources,setSources]=useState<Source[]>([]);
   const [mySources,setMySources]=useState<Source[]>([]);
+  const [engineeringDashboard,setEngineeringDashboard]=useState<EngineeringDashboardSummary|null>(null);
+  const [engineeringDashboardError,setEngineeringDashboardError]=useState('');
   // When an authenticated member follows exactly one GitHub repo, use its
   // sourceId for queries even with "내 전체 저장소" selected. A source-specific
   // query is ordered by numeric release version (13.2.4 > 13.1.8 > 12.4.13).
@@ -182,6 +184,16 @@ export default function App(){
   useEffect(()=>{
     if(!member){setMySources([]);return;}
     const c=new AbortController();fetchMySources(c.signal).then(setMySources).catch(()=>{if(!c.signal.aborted)setMySources([]);});
+    return()=>c.abort();
+  },[member?.id,refreshVersion]);
+
+  useEffect(()=>{
+    if(!member){setEngineeringDashboard(null);setEngineeringDashboardError('');return;}
+    const c=new AbortController();
+    setEngineeringDashboardError('');
+    fetchMyEngineeringDashboard(c.signal)
+      .then(setEngineeringDashboard)
+      .catch((e:unknown)=>{if(!c.signal.aborted)setEngineeringDashboardError(e instanceof Error?e.message:'대시보드 조회 실패');});
     return()=>c.abort();
   },[member?.id,refreshVersion]);
 
@@ -237,24 +249,26 @@ export default function App(){
     window.addEventListener('keydown',esc);return()=>window.removeEventListener('keydown',esc);
   },[detailId]);
 
-  const totalRecords=sources.reduce((sum,s)=>sum+s.recordCount,0);
-  const latestChecked=sources.map(s=>s.lastCheckedAt?Date.parse(s.lastCheckedAt):0).filter(Number.isFinite).reduce((a,b)=>Math.max(a,b),0);
-  const sampleCount=changes?.items.length??0;
-  const sampleTruncated=!!changes&&changes.totalElements>sampleCount;
+  const dashboardSources=member?mySources:[];
+  const totalRecords=member?(engineeringDashboard?.recordCount??0):0;
+  const latestChecked=member&&engineeringDashboard?.latestCheckedAt
+    ? Date.parse(engineeringDashboard.latestCheckedAt) : 0;
   const series=useMemo(()=>{
     const result:{key:string;label:string;NEW:number;UPDATED:number}[]=[];
     const today=new Date();
-    // 현지 사용 시간대 대신 서비스 표준인 KST 기준 날짜 계산
     const kstDay=new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Seoul'}).format(today);
     const utcMidnight=new Date(`${kstDay}T00:00:00+09:00`).getTime();
     for(let n=6;n>=0;n--){
       const d=new Date(utcMidnight-n*86400000);
       result.push({key:dayKey(d.toISOString()),label:dayFormatter.format(d),NEW:0,UPDATED:0});
     }
-    for(const c of changes?.items??[]){const found=result.find(x=>x.key===dayKey(c.detectedAt));if(found)found[c.changeType]++;}
+    for(const d of engineeringDashboard?.days??[]){
+      const match=result.find(x=>x.key===d.day);
+      if(match){match.NEW=d.newCount;match.UPDATED=d.updatedCount;}
+    }
     return result;
-  },[changes]);
-  const sevenDayEvents=series.reduce((sum,d)=>sum+d.NEW+d.UPDATED,0);
+  },[engineeringDashboard]);
+  const sevenDayEvents=engineeringDashboard?.changesLast7Days??0;
   const chartMax=Math.max(1,...series.map(s=>s.NEW+s.UPDATED));
 
   function navigate(to:View){
