@@ -159,16 +159,13 @@ export default function App(){
   // With multiple repositories, the combined view remains ordered by publish date.
   const effectiveSourceId = sourceId ?? (member && mySources.length === 1 ? mySources[0].id : null);
   const [records,setRecords]=useState<ApiPage<RecordItem>|null>(null);
-  const [changes,setChanges]=useState<ApiPage<ChangeItem>|null>(null);
   const [historyPage,setHistoryPage]=useState(0);
   const [pagedChanges,setPagedChanges]=useState<ApiPage<ChangeItem>|null>(null);
   const [pagedChangesLoading,setPagedChangesLoading]=useState(false);
   const [pagedChangesError,setPagedChangesError]=useState('');
   const [sourcesError,setSourcesError]=useState('');
   const [recordsError,setRecordsError]=useState('');
-  const [changesError,setChangesError]=useState('');
   const [recordsLoading,setRecordsLoading]=useState(true);
-  const [changesLoading,setChangesLoading]=useState(true);
   const [detailId,setDetailId]=useState<number|null>(null);
   const [detail,setDetail]=useState<RecordDetail|null>(null);
   const [detailError,setDetailError]=useState('');
@@ -208,13 +205,6 @@ export default function App(){
     (member ? fetchMyRecords(page,search,effectiveSourceId,c.signal) : fetchRecords(page,search,sourceId,c.signal)).then(setRecords).catch((e:unknown)=>{if(!c.signal.aborted)setRecordsError(e instanceof Error?e.message:'정보 조회 실패');}).finally(()=>{if(!c.signal.aborted)setRecordsLoading(false);});
     return()=>c.abort();
   },[page,search,sourceId,effectiveSourceId,refreshVersion,member?.id]);
-
-  useEffect(()=>{
-    const c=new AbortController();setChangesError('');setChangesLoading(true);
-    // 100개까지 받아 메인 차트와 최근 변경 목록에 사용합니다. 100개 초과 시 표본임을 표시합니다.
-    (member ? fetchMyChanges(0,100,effectiveSourceId,c.signal) : fetchChanges(0,100,sourceId,c.signal)).then(setChanges).catch((e:unknown)=>{if(!c.signal.aborted)setChangesError(e instanceof Error?e.message:'변경 이력 조회 실패');}).finally(()=>{if(!c.signal.aborted)setChangesLoading(false);});
-    return()=>c.abort();
-  },[sourceId,effectiveSourceId,refreshVersion,member?.id]);
 
   useEffect(()=>{
     if(view!=='changes')return;
