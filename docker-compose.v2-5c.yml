@@ -1,0 +1,9 @@
+# V2-5C: opt-in Airflow-only environment overlay.
+# NEVER commit real API keys in Compose YAML; values come from local .env.
+services:
+  airflow:
+    environment:
+      YONGIN_API_SERVICE_KEY: ${YONGIN_API_SERVICE_KEY:-}
+      SIGNALBRIDGE_V2_LIVE_INGEST_ENABLED: ${SIGNALBRIDGE_V2_LIVE_INGEST_ENABLED:-false}
+      # Opportunity catalog is isolated from member DB.
+      SIGNALBRIDGE_V2_DB_NAME: signalbridge_v2_lab

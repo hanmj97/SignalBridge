@@ -1,0 +1,19 @@
+# Add-on: use with the existing docker-compose.yml. Does not recreate the DB volume.
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: signalbridge-api:phase2
+    container_name: signalbridge-api
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-signalbridge}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-signalbridge}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Create .env first}
+    ports:
+      # Local development only. Reverse proxy + HTTPS required for public access.
+      - "127.0.0.1:8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy

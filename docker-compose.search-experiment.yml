@@ -1,0 +1,7 @@
+# Optional search-strategy experiment. Include this override for API mode switching.
+# Do not publish this configuration to production without real workload validation.
+services:
+  api:
+    environment:
+      # OR (default) or UNION; empty/unknown values fail at startup.
+      SIGNALBRIDGE_SEARCH_STRATEGY: ${SIGNALBRIDGE_SEARCH_STRATEGY:-OR}

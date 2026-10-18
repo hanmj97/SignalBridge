@@ -1,0 +1,1 @@
+"""SignalBridge data ingestion package."""

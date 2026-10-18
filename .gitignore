@@ -1,0 +1,36 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.log
+.idea/
+.vscode/
+.DS_Store
+# BEGIN SignalBridge Phase 15 safety rules
+# Local configuration / backups / release output must never be committed
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+backups/
+**/backups/
+_phase*_staging/
+_phase*staging/
+*.dump
+*.backup
+*.bak
+*.sqlite
+*.sqlite3
+*.p12
+*.pfx
+*.pem
+*.key
+node_modules/
+dist/
+__pycache__/
+.venv/
+perf-lab/reports/
+# END SignalBridge Phase 15 safety rules

@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: signalbridge-api
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://127.0.0.1:5434/signalbridge}
+    username: ${SPRING_DATASOURCE_USERNAME:signalbridge}
+    password: ${SPRING_DATASOURCE_PASSWORD:local_dev_change_me}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 10000
+server:
+  port: 8080
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        name: SBSESSIONID
+        http-only: true
+        same-site: lax
+        secure: ${SESSION_COOKIE_SECURE:false}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+# Optional experiment. OR is preserved as the safe default.
+signalbridge:
+  search:
+    strategy: ${SIGNALBRIDGE_SEARCH_STRATEGY:OR}
+  email:
+    resend-api-key: ${RESEND_API_KEY:}
+    from: ${SIGNALBRIDGE_MAIL_FROM:}
+    public-url: ${SIGNALBRIDGE_PUBLIC_URL:http://localhost:5173}
+
+# For HTTPS deployment, set SESSION_COOKIE_SECURE=true.
+
+  discord:
+    encryption-key: ${SIGNALBRIDGE_DISCORD_ENCRYPTION_KEY:}

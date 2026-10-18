@@ -1,0 +1,7 @@
+# V2-2 local development only.
+# Existing API datasource remains unchanged (accounts, watches, GitHub releases).
+# The new READ-ONLY GET /api/v1/opportunities endpoints use signalbridge_v2_lab.
+services:
+  api:
+    environment:
+      SIGNALBRIDGE_V2_JDBC_URL: jdbc:postgresql://postgres:5432/signalbridge_v2_lab

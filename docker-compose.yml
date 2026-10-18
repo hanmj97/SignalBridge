@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: signalbridge-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-signalbridge}
+      POSTGRES_USER: ${POSTGRES_USER:-signalbridge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env first}
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - signalbridge_pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  signalbridge_pgdata:

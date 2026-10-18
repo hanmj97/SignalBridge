@@ -1,0 +1,55 @@
+[
+  {
+    "external_id": "SB-DEMO-POLICY-001",
+    "title": "[가상 예시] 청년 진로 상담 지원",
+    "url": "https://example.org/signalbridge/demo/policy-001",
+    "kind": "POLICY",
+    "organization": "가상 정책 운영기관",
+    "category": "취업",
+    "region_codes": [
+      "경기",
+      "서울"
+    ],
+    "application_start": "2026-11-01",
+    "application_deadline": "2026-12-15",
+    "status": "UNKNOWN",
+    "age_min": 19,
+    "age_max": 34,
+    "eligibility_summary": "가상 데이터: 실제 신청 자격이 아닙니다.",
+    "benefit_summary": "가상 데이터: 진로 상담 + 멘토링 프로그램 테스트 (변경 예시)"
+  },
+  {
+    "external_id": "SB-DEMO-BENEFIT-002",
+    "title": "[가상 예시] 청년 주거비 지원",
+    "url": "https://example.org/signalbridge/demo/benefit-002",
+    "kind": "BENEFIT",
+    "organization": "가상 지원사업 기관",
+    "category": "주거",
+    "region_codes": [
+      "경기"
+    ],
+    "application_start": "2026-11-10",
+    "application_deadline": "2026-12-30",
+    "status": "UNKNOWN",
+    "age_min": 19,
+    "age_max": 39,
+    "eligibility_summary": "가상 데이터: 실제 신청 자격이 아닙니다.",
+    "benefit_summary": "가상 데이터: 주거비 지원 예시"
+  },
+  {
+    "external_id": "SB-DEMO-JOB-003",
+    "title": "[가상 예시] IT 신입 개발자 채용",
+    "url": "https://example.org/signalbridge/demo/job-003",
+    "kind": "JOB",
+    "organization": "가상 채용기업",
+    "category": "IT·개발",
+    "region_codes": [
+      "전국"
+    ],
+    "application_start": "2026-11-01",
+    "application_deadline": "2026-11-30",
+    "status": "UNKNOWN",
+    "employment_type": "정규직",
+    "eligibility_summary": "가상 데이터: 실제 채용공고가 아닙니다."
+  }
+]

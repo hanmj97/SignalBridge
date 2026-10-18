@@ -1,0 +1,7 @@
+# Compose overlay: reference server-only Resend config, without changing other services.
+services:
+  api:
+    environment:
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SIGNALBRIDGE_MAIL_FROM: ${SIGNALBRIDGE_MAIL_FROM:-}
+      SIGNALBRIDGE_PUBLIC_URL: ${SIGNALBRIDGE_PUBLIC_URL:-http://localhost:5173}

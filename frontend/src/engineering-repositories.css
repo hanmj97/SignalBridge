@@ -1,0 +1,15 @@
+
+/* V2-9 personal repository registration; retained existing UI palette and spacing. */
+.my-repos-panel {display:flex;flex-direction:column;gap:18px;min-height:280px;}
+.repo-register-form {display:flex;flex-direction:column;gap:10px;}
+.repo-register-form label {font-size:13px;font-weight:650;color:#263851;}
+.repo-register-controls {display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.repo-register-controls input {flex:1;min-width:200px;border:1px solid #dde6f2;border-radius:10px;padding:12px 14px;font:inherit;color:inherit;}
+.repo-register-controls button,.repo-row-actions button {border:1px solid #dbe5f4;background:#eaf2ff;border-radius:10px;padding:10px 14px;font:inherit;font-size:13px;font-weight:650;cursor:pointer;color:#2463c3;}
+.repo-register-controls button:disabled,.repo-row-actions button:disabled {cursor:not-allowed;opacity:.5;}
+.repo-list {display:flex;flex-direction:column;gap:10px;}
+.repo-list-row {display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px;border:1px solid #e8edf5;border-radius:12px;flex-wrap:wrap;}
+.repo-list-row strong {display:block;overflow-wrap:anywhere;color:#172641;}
+.repo-list-row small {display:block;margin-top:6px;font-size:12px;color:#8191aa;}
+.repo-row-actions {display:flex;gap:8px;flex-wrap:wrap;}
+.repo-row-actions .repo-disconnect {background:white;color:#a03c4a;}

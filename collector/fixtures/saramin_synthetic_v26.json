@@ -1,0 +1,39 @@
+{
+  "_synthetic": "ALL ROWS FAKE. Offline test only; not an API response captured from a real user or employer.",
+  "jobs": {
+    "count": 2,
+    "start": 0,
+    "total": 2,
+    "job": [
+      {
+        "id": "987654321",
+        "url": "http://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=987654321&utm_source=test",
+        "active": 1,
+        "posting-timestamp": "1781654400",
+        "opening-timestamp": "1781654400",
+        "expiration-timestamp": "1784246399",
+        "close-type": {"code": "1", "name": "접수마감일"},
+        "company": {"detail": {"name": "가상회사 A"}},
+        "position": {
+          "title": "가상 데이터 엔지니어 모집 — 테스트용",
+          "location": {"code": "101000", "name": "서울 > 강남구"},
+          "job-type": {"code": "1", "name": "정규직"},
+          "job-mid-code": {"code": "22", "name": "IT개발·데이터"}
+        }
+      },
+      {
+        "id": "987654322",
+        "url": "https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=987654322",
+        "active": 1,
+        "posting-timestamp": "1781654400",
+        "close-type": {"code": "3", "name": "상시"},
+        "company": {"detail": {"name": "가상회사 B"}},
+        "position": {
+          "title": "가상 백엔드 개발자 상시 모집 — 테스트용",
+          "location": {"code": "102190", "name": "경기 > 성남시 분당구"},
+          "job-type": {"code": "1", "name": "정규직"}
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+# SignalBridge V2-3. Non-destructive optional local dev override.
+# Existing API/member DB stays signalbridge; catalog queries stay in lab DB.
+services:
+  airflow:
+    environment:
+      SIGNALBRIDGE_V2_DB_NAME: signalbridge_v2_lab

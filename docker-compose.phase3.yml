@@ -1,0 +1,22 @@
+# Add this file to the same Compose invocation used in phase 2.
+# It does not modify or recreate the PostgreSQL volume.
+services:
+  web:
+    image: node:22-alpine
+    container_name: signalbridge-web
+    working_dir: /app
+    environment:
+      # Docker polling helps file change detection on Windows mounted folders.
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - signalbridge_frontend_node_modules:/app/node_modules
+    command: sh -c "npm install --no-audit --no-fund && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  signalbridge_frontend_node_modules:

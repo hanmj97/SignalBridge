@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This is a SYNTHETIC private test format. NOT an official Youth Center response. -->
+<SignalBridgeSyntheticFeed synthetic="true" version="1">
+  <item>
+    <external_id>SB-V24-FAKE-POLICY-101</external_id>
+    <title>[가상 예시] 청년 기술 교육비 지원</title>
+    <url>https://example.org/signalbridge/demo/v24-policy-101</url>
+    <kind>POLICY</kind>
+    <organization>가상 공공정책 기관</organization>
+    <category>교육</category>
+    <regions><region>경기</region><region>서울</region></regions>
+    <application_start>2026-11-02</application_start>
+    <application_deadline>2026-12-10</application_deadline>
+    <status>UNKNOWN</status>
+    <age_min>19</age_min><age_max>34</age_max>
+    <eligibility_summary>가상 데이터: 실제 신청할 수 없습니다.</eligibility_summary>
+    <benefit_summary>가상 예시: 기술 교육비 지원</benefit_summary>
+  </item>
+  <item>
+    <external_id>SB-V24-FAKE-JOB-102</external_id>
+    <title>[가상 예시] 신입 데이터 엔지니어 채용</title>
+    <url>https://example.org/signalbridge/demo/v24-job-102</url>
+    <kind>JOB</kind>
+    <organization>가상 채용기관</organization>
+    <category>IT·데이터</category>
+    <regions><region>전국</region></regions>
+    <status>UNKNOWN</status>
+    <employment_type>정규직</employment_type>
+    <eligibility_summary>가상 데이터: 채용공고가 아닙니다.</eligibility_summary>
+  </item>
+</SignalBridgeSyntheticFeed>

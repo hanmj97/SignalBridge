@@ -1,0 +1,13 @@
+{
+  "response": {
+    "header": {"resultCode": "0", "resultMsg": "NORMAL_CODE"},
+    "body": {
+      "totalCount": 3,
+      "items": {"item": [
+        {"no": "SB-V25-FAKE-001", "type": "채용정보", "sj": "[가상] SignalBridge 용인시 청년 공공채용", "dept_nm": "실습 부서", "bgng_ymd": "20261001", "end_ymd": "20261031", "rcpt_yn": "Y", "cn": "가상 데이터입니다."},
+        {"no": "SB-V25-FAKE-002", "type": "시험 정보", "sj": "[가상] 공공기관 시험 응시 안내", "dept_nm": "실습 부서", "bgng_ymd": "20261003", "end_ymd": "20261025", "rcpt_yn": "Y", "cn": "가상 데이터입니다."},
+        {"no": "SB-V25-FAKE-003", "type": "합격자발표", "sj": "[가상] 합격자 발표", "dept_nm": "실습 부서", "bgng_ymd": null, "end_ymd": null, "rcpt_yn": null}
+      ]}
+    }
+  }
+}

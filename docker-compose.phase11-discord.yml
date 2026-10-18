@@ -1,0 +1,9 @@
+# Add-on to the existing Compose stack. Keep this encryption key outside Git.
+# API encrypts URLs; Airflow decrypts only during member-specific delivery.
+services:
+  api:
+    environment:
+      SIGNALBRIDGE_DISCORD_ENCRYPTION_KEY: ${SIGNALBRIDGE_DISCORD_ENCRYPTION_KEY:?Add a 32-byte Base64 key to .env}
+  airflow:
+    environment:
+      SIGNALBRIDGE_DISCORD_ENCRYPTION_KEY: ${SIGNALBRIDGE_DISCORD_ENCRYPTION_KEY:?Add a 32-byte Base64 key to .env}
