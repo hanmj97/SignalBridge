@@ -28,8 +28,16 @@ JOIN records r ON r.id = v.record_id
 JOIN sources s ON s.id = r.source_id
 WHERE w.enabled = TRUE
   AND (w.source_id IS NULL OR w.source_id = r.source_id)
+  -- A member can only receive events for repositories they personally track.
+  -- Joining the subscription timestamp avoids historical/backfilled versions.
+  AND (w.user_id IS NULL OR EXISTS (
+    SELECT 1 FROM user_repository_subscriptions sub
+    WHERE sub.user_id = w.user_id AND sub.source_id = r.source_id
+      AND v.detected_at > sub.created_at
+  ))
   AND (
-    strpos(lower(coalesce(v.payload->>'title', r.title)), lower(w.keyword)) > 0
+    (w.keyword = '모든 릴리스' AND w.source_id IS NOT NULL)
+    OR strpos(lower(coalesce(v.payload->>'title', r.title)), lower(w.keyword)) > 0
     OR strpos(lower(s.label), lower(w.keyword)) > 0
   )
 ON CONFLICT (rule_id, record_version_id) DO NOTHING
@@ -162,6 +170,12 @@ JOIN record_versions v ON v.id=e.record_version_id
 JOIN records r ON r.id=v.record_id
 JOIN sources s ON s.id=r.source_id
 WHERE e.status='PENDING' AND e.attempts<3 AND w.enabled=TRUE
+  -- Never deliver queued events for repositories the member has since removed.
+  AND EXISTS (
+    SELECT 1 FROM user_repository_subscriptions sub
+    WHERE sub.user_id=w.user_id AND sub.source_id=r.source_id
+      AND v.detected_at > sub.created_at
+  )
   AND e.created_at>c.activated_at AND v.detected_at>c.activated_at
 ORDER BY e.id LIMIT 10
 """
